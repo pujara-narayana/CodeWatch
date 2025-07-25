@@ -6,14 +6,22 @@ MindGarden is a journaling and self-growth AI application designed to help users
 
 ## 📦 Project Structure
 
+```bash
 src/
-├── backend/
-│ ├── main.py # FastAPI entry point
-│ ├── agents/ # AI agents (Journal, Mood, Wellness, etc.)
-│ ├── coordinator/ # CoordinatorAgent to orchestrate agent interactions
-│ ├── models/ # Pydantic models and data schemas
-│ ├── utils/ # Helper utilities
-
+└── backend/
+├── main.py # FastAPI entry point
+├── agents/ # AI agents (Journal, Mood, Wellness, etc.)
+│ ├── init.py
+│ ├── garden_agent.py
+│ ├── goal_agent.py
+│ ├── insight_agent.py
+│ ├── mood_agent.py
+│ ├── wellness_agent.py
+├── coordinator_agent.py # Coordinator agent to orchestrate agent interactions
+├── models/ # Pydantic models and data schemas
+│ └── schemas.py
+└── utils.py # Helper utilities
+```
 ---
 
 ## 🚀 Running the Backend
