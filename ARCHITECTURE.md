@@ -1,8 +1,6 @@
-# 🧠 MindGarden - Technical Design Explanation
+# 🌱 MindGarden - AI-Powered Mental Wellness Companion
 
-## Design Philosophy & Technical Choices
-
-This document explains the technical decisions and design choices made in building MindGarden, an AI-powered mental wellness companion that combines React Native frontend with intelligent backend agents.
+A beautifully designed React Native app that serves as your adaptive AI-powered mental wellness companion, featuring intelligent interaction, emotional tracking, guided journaling, mindfulness activities, and a gamified emotion garden.
 
 ## ✨ Features
 
