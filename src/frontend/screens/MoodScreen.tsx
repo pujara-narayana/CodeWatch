@@ -339,25 +339,6 @@ export default function MoodScreen() {
           ))}
         </View>
 
-        {/* Mood Selector */}
-        <View style={styles.moodSelector}>
-          {moodOptions.map((mood) => (
-            <TouchableOpacity
-              key={mood.value}
-              style={[
-                styles.moodOption,
-                selectedMood === mood.value && styles.selectedMood,
-                { borderColor: mood.color },
-              ]}
-              onPress={() => handleMoodSelect(mood.value)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-              <Text style={styles.moodLabel}>{mood.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         {/* Show message for past days */}
         {formatDate(selectedDate) !== formatDate(new Date()) && (
           <View style={styles.pastDateMessage}>
