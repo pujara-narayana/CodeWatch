@@ -4,10 +4,12 @@ from agents.insight_agent import InsightAgent
 from agents.wellness_agent import WellnessCoachAgent
 from agents.goal_agent import GoalAgent
 from agents.garden_agent import GardenVisualizerAgent
+from agents.cognitive_agent import CognitiveAgent
+
 from agents.affirmation_agent import AffirmationAgent
 
 class CoordinatorAgent:
-  def __init__(self, model):
+  def __init__(self, model, db_accessor):
     self.journal = JournalAgent(model)
     self.mood = MoodAgent()
     self.insight = InsightAgent()
@@ -15,9 +17,15 @@ class CoordinatorAgent:
     self.goal = GoalAgent()
     self.garden = GardenVisualizerAgent()
     self.affirmation = AffirmationAgent(model)
+    self.cognitiveSupport = CognitiveAgent(model, db_accessor)
 
   def get_journal_prompts(self):
     return self.journal.generate_journal_prompts()
+
+  async def get_cognitive_support(self, user_id: str):
+    print("HI WE MADE IT")
+    print(user_id)
+    return await self.cognitiveSupport.get_cognitive_support(user_id)
 
   def log_mood(self, mood):
     self.mood.log_mood(mood)
@@ -34,6 +42,6 @@ class CoordinatorAgent:
   def get_garden_status(self):
     entries = len(self.mood.get_moods())
     return self.garden.get_growth_message(entries)
-  
+
   def get_affirmations(self):
     return self.affirmation.generate_motivational_affirmations(user_info="I am really motivating person who likes to build suff",user_mood="happy",latest_journals=["I am to build a new AI Application", "I was sad not to get the first position in the hackathon"])
