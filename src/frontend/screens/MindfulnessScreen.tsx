@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../frontend/constants/Colors';
 import { useTheme } from '../contexts/ThemeContext';
+import { postCognitiveSupport } from "../utils/api-calls/getCognitiveInsight";
 
 const { width } = Dimensions.get('window');
 
@@ -222,6 +223,19 @@ export default function MindfulnessScreen() {
     }
   };
 
+  const handleCognitiveInsights = async () => {
+      console.log("it hit me 22222")
+        try {
+            const insights = await postCognitiveSupport(); // ✅ Always array
+            console.log("INSIGHTS: ")
+            console.log(insights)
+            // setJournalPrompts(prompts);
+            // setShowPrompts(true);
+        } catch (err) {
+            console.error("Failed to fetch cognitive insights :", err);
+        }
+  };
+
   return (
     <LinearGradient
       colors={[colors.secondary, colors.background]}
@@ -362,6 +376,23 @@ export default function MindfulnessScreen() {
               </View>
             )}
           </View>
+        </View>
+
+        <View>
+          <TouchableOpacity
+            style={[styles.controlButton, styles.stopButton]}
+            onPress = {() => handleCognitiveInsights()}
+            activeOpacity={0.8}
+          >
+            <Text >
+              {"Trying cognitive insights"}
+            </Text>
+            <Ionicons
+              name="checkmark-circle"
+              size={24}
+              color={Colors.surface}
+            />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.activitiesSection}>

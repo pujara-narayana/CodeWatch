@@ -27,7 +27,7 @@ class Database:
             return MoodResponse(**mood)
         raise Exception("Failed to create mood")
     
-    async def get_user_moods(self, user_id: str, limit: int = 30) -> List[MoodResponse]:
+    async def get_user_moods(self, user_id: str, limit: int = 7) -> List[MoodResponse]:
         response = self.supabase.table("moods").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(limit).execute()
         
         return [MoodResponse(**mood) for mood in response.data]
@@ -44,7 +44,7 @@ class Database:
             return JournalEntryResponse(**entry)
         raise Exception("Failed to create journal entry")
     
-    async def get_user_journal_entries(self, user_id: str, limit: int = 20) -> List[JournalEntryResponse]:
+    async def get_user_journal_entries(self, user_id: str, limit: int = 7) -> List[JournalEntryResponse]:
         response = self.supabase.table("journal_entries").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(limit).execute()
         
         return [JournalEntryResponse(**entry) for entry in response.data]
@@ -71,6 +71,8 @@ class Database:
         response = query.order("created_at", desc=True).limit(limit).execute()
         
         return [InsightResponse(**insight) for insight in response.data]
+
+
 
 # Global database instance
 db = Database()
