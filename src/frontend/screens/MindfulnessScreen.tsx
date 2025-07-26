@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   Dimensions,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../frontend/constants/Colors';
+import { Colors } from '../constants/Colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { postCognitiveSupport } from "../utils/api-calls/getCognitiveInsight";
 
@@ -97,6 +98,8 @@ export default function MindfulnessScreen() {
   const [sessionTimer, setSessionTimer] = useState(0);
   const [sessionDuration, setSessionDuration] = useState(0);
   const [isSessionPaused, setIsSessionPaused] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [insights, setInsights] = useState<any | null>(null);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -224,16 +227,19 @@ export default function MindfulnessScreen() {
   };
 
   const handleCognitiveInsights = async () => {
-      console.log("it hit me 22222")
-        try {
-            const insights = await postCognitiveSupport(); // ✅ Always array
-            console.log("INSIGHTS: ")
-            console.log(insights)
-            // setJournalPrompts(prompts);
-            // setShowPrompts(true);
-        } catch (err) {
-            console.error("Failed to fetch cognitive insights :", err);
-        }
+   setLoading(true);
+    setInsights(null);
+    try {
+        const insights = await postCognitiveSupport(); // ✅ Always array
+        setInsights(insights);
+        // setJournalPrompts(prompts);
+        // setShowPrompts(true);
+    } catch (err) {
+        console.error("Failed to fetch cognitive insights :", err);
+        setInsights(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -378,24 +384,45 @@ export default function MindfulnessScreen() {
           </View>
         </View>
 
-        <View>
-          <TouchableOpacity
-            style={[styles.controlButton, styles.stopButton]}
-            onPress = {() => handleCognitiveInsights()}
-            activeOpacity={0.8}
-          >
-            <Text >
-              {"Trying cognitive insights"}
-            </Text>
-            <Ionicons
-              name="checkmark-circle"
-              size={24}
-              color={Colors.surface}
-            />
-          </TouchableOpacity>
-        </View>
-
+        {/* Cognitive Insights */}
         <View style={styles.activitiesSection}>
+          <Text style={styles.sectionTitle}>Cognitive Insights</Text>
+        <TouchableOpacity
+          style={[styles.controlButton, styles.generateButton]}
+          onPress={handleCognitiveInsights}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="sparkles" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={styles.buttonText}>Generate Cognitive Insights</Text>
+        </TouchableOpacity>
+
+        {loading && (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Generating cognitive support response...</Text>
+          </View>
+        )}
+
+        {insights && (
+          <ScrollView style={styles.resultBox}>
+            <Text style={styles.resultTitle}>🧠 Cognitive Insight</Text>
+            <Text style={styles.resultText}>{insights.cognitive_distortion}</Text>
+
+            <Text style={styles.resultTitle}>💥 Stress Patterns</Text>
+            {insights.stress_patterns.map((item: string, idx: number) => (
+              <Text key={idx} style={styles.resultText}>• {item}</Text>
+            ))}
+
+            <Text style={styles.resultTitle}>🛠️ Coping Mechanism</Text>
+            <Text style={styles.resultText}>{insights.coping_mechanism}</Text>
+
+            <Text style={styles.resultTitle}>📋 Summary</Text>
+            <Text style={styles.resultText}>{insights.summary}</Text>
+          </ScrollView>
+        )}
+      </View>
+
+        <View style={styles.cognitiveSection}>
           <Text style={styles.sectionTitle}>Guided Sessions</Text>
           <View style={styles.activitiesGrid}>
             {mindfulnessActivities.map((activity, index) => (
@@ -634,7 +661,7 @@ const styles = StyleSheet.create({
   },
   activityCard: {
     width: (width - 60) / 2,
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.background,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -654,7 +681,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   activityTitle: {
-    fontSize: 16,
+    fontSize: 26,
     fontWeight: '600',
     color: Colors.text,
     marginBottom: 4,
@@ -720,4 +747,64 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     lineHeight: 20,
   },
+
+  // cognitive section
+  cognitiveSection: {
+  paddingHorizontal: 20,
+  marginBottom: 30,
+},
+
+generateButton: {
+  backgroundColor: Colors.primary,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 12,
+  paddingVertical: 14,
+  paddingHorizontal: 20,
+  marginTop: 12,
+},
+
+buttonText: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "600",
+},
+
+loading: {
+  alignItems: "center",
+  marginTop: 16,
+},
+
+loadingText: {
+  marginTop: 8,
+  color: Colors.primaryDark,
+  fontStyle: "italic",
+},
+
+resultBox: {
+  marginTop: 16,
+  padding: 16,
+  borderRadius: 12,
+  backgroundColor: Colors.surface,
+  shadowColor: Colors.shadow,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 6,
+  elevation: 3,
+},
+
+resultTitle: {
+  fontWeight: "700",
+  fontSize: 16,
+  marginTop: 12,
+  color: Colors.primary,
+},
+
+resultText: {
+  fontSize: 15,
+  color: Colors.text,
+  marginTop: 4,
+},
+
 });
