@@ -13,5 +13,6 @@ export async function fetchAffirmation() {
     }
   
     const data = await res.json();
+    console.log(data)
     return data;
   }
