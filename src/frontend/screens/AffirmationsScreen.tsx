@@ -15,6 +15,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Colors } from '../constants/Colors';
 import { useTheme } from '../contexts/ThemeContext';
 import { RootStackParamList } from '../types/navigation';
+import { fetchAffirmation } from '../utils/api-calls/getAffirmations';
 
 type AffirmationsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Affirmations'>;
 
@@ -86,41 +87,99 @@ const motivationalQuotes = [
 export default function AffirmationsScreen() {
   const navigation = useNavigation<AffirmationsScreenNavigationProp>();
   const { colors } = useTheme();
-  const [currentQuote, setCurrentQuote] = useState(motivationalQuotes[0]);
-  const [quoteHistory, setQuoteHistory] = useState([motivationalQuotes[0]]);
+  const [currentQuote, setCurrentQuote] = useState({ text: "Loading inspiration...", author: "MindGarden AI" });
+  const [quoteHistory, setQuoteHistory] = useState([{ text: "Loading inspiration...", author: "MindGarden AI" }]);
   const [fadeAnim] = useState(new Animated.Value(1));
+  const [isLoading, setIsLoading] = useState(false);
+  const [aiGenerated, setAiGenerated] = useState(false);
 
-  const generateNewQuote = () => {
+  // useEffect(() => {
+  //   generateAIQuote(); // Load initial AI quote
+  // }, []);
+
+  const generateAIQuote = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    
     // Fade out animation
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => {
-      // Get a random quote that's different from current
-      let newQuote;
-      do {
-        newQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-      } while (newQuote.text === currentQuote.text && motivationalQuotes.length > 1);
-      
-      setCurrentQuote(newQuote);
-      
-      // Add to history if not already present
-      setQuoteHistory(prev => {
-        const exists = prev.some(quote => quote.text === newQuote.text);
-        if (!exists) {
-          return [newQuote, ...prev.slice(0, 9)]; // Keep last 10 quotes
-        }
-        return prev;
-      });
+    }).start(async () => {
+      try {
+        const response = await fetchAffirmation();
+        const newQuote = {
+          text: response.quote || "You are capable of amazing things. Trust in your journey.",
+          author: "MindGarden AI"
+        };
+        
+        setCurrentQuote(newQuote);
+        setAiGenerated(true);
+        
+        // Add to history
+        setQuoteHistory(prev => {
+          const exists = prev.some(quote => quote.text === newQuote.text);
+          if (!exists) {
+            return [newQuote, ...prev.slice(0, 9)];
+          }
+          return prev;
+        });
+      } catch (error) {
+        console.error('Failed to fetch AI affirmation:', error);
+        // Fallback to static quote
+        const fallbackQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+        setCurrentQuote(fallbackQuote);
+        setAiGenerated(false);
+      } finally {
+        setIsLoading(false);
+        
+        // Fade in animation
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+  };
 
-      // Fade in animation
+  const generateNewQuote = () => {
+    // Alternate between AI and static quotes
+    if (aiGenerated) {
+      // Generate static quote
       Animated.timing(fadeAnim, {
-        toValue: 1,
+        toValue: 0,
         duration: 300,
         useNativeDriver: true,
-      }).start();
-    });
+      }).start(() => {
+        let newQuote;
+        do {
+          newQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+        } while (newQuote.text === currentQuote.text && motivationalQuotes.length > 1);
+        
+        setCurrentQuote(newQuote);
+        setAiGenerated(false);
+        
+        setQuoteHistory(prev => {
+          const exists = prev.some(quote => quote.text === newQuote.text);
+          if (!exists) {
+            return [newQuote, ...prev.slice(0, 9)];
+          }
+          return prev;
+        });
+
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      });
+    } else {
+      // Generate AI quote
+      generateAIQuote();
+    }
   };
 
   const selectQuote = (quote: typeof motivationalQuotes[0]) => {
@@ -172,7 +231,11 @@ export default function AffirmationsScreen() {
               style={styles.quoteGradient}
             >
               <View style={styles.quoteIconContainer}>
-                <Ionicons name="chatbubble-ellipses" size={32} color={Colors.primary} />
+                <Ionicons 
+                  name={aiGenerated ? "sparkles" : "chatbubble-ellipses"} 
+                  size={32} 
+                  color={aiGenerated ? Colors.warning : Colors.primary} 
+                />
               </View>
               
               <Text style={styles.quoteText}>"{currentQuote.text}"</Text>
@@ -187,15 +250,21 @@ export default function AffirmationsScreen() {
 
           <TouchableOpacity
             style={styles.generateButton}
-            onPress={generateNewQuote}
+            onPress={() => generateAIQuote()}
             activeOpacity={0.8}
           >
             <LinearGradient
               colors={[Colors.primary, Colors.primaryLight]}
               style={styles.generateGradient}
             >
-              <Ionicons name="refresh" size={24} color={Colors.surface} />
-              <Text style={styles.generateButtonText}>New Inspiration</Text>
+              {isLoading ? (
+                <Ionicons name="hourglass" size={24} color={Colors.surface} />
+              ) : (
+                <Ionicons name="refresh" size={24} color={Colors.surface} />
+              )}
+              <Text style={styles.generateButtonText}>
+                {isLoading ? "Generating..." : aiGenerated ? "Try Classic Quote" : "AI Inspiration"}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
