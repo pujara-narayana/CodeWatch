@@ -6,16 +6,16 @@ from agents.goal_agent import GoalAgent
 from agents.garden_agent import GardenVisualizerAgent
 
 class CoordinatorAgent:
-  def __init__(self):
-    self.journal = JournalAgent()
+  def __init__(self, model):
+    self.journal = JournalAgent(model)
     self.mood = MoodAgent()
     self.insight = InsightAgent()
     self.wellness = WellnessCoachAgent()
     self.goal = GoalAgent()
     self.garden = GardenVisualizerAgent()
 
-  def get_journal_prompt(self):
-    return self.journal.get_prompt()
+  def get_journal_prompts(self):
+    return self.journal.generate_journal_prompts()
 
   def log_mood(self, mood):
     self.mood.log_mood(mood)

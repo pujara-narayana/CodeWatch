@@ -1,32 +1,46 @@
 from fastapi import FastAPI, HTTPException
-from coordinator_agent import CoordinatorAgent
 from models.schemas import MoodInput, MoodResponse, JournalEntryInput, JournalEntryResponse, InsightResponse
 from fastapi.middleware.cors import CORSMiddleware
+from utils import get_gemini_model
+from contextlib import asynccontextmanager
+from coordinator_agent import CoordinatorAgent
+import asyncio
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  global coordinator
+  model = get_gemini_model()  # ✅ Initialize once
+  coordinator = CoordinatorAgent(model)
+  print("✅ Gemini model initialized at startup")
+  yield  # ⬅ app runs after this
+  print("🛑 App shutting down")
 from database import db
 from typing import List
 
-app = FastAPI()
-coordinator = CoordinatorAgent()
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Or restrict to your frontend origin like ["http://localhost:5173"]
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+  CORSMiddleware,
+  allow_origins=["*"],  # Or restrict to your frontend origin like ["http://localhost:5173"]
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
 )
+
 
 @app.get("/")
 def root():
   return {"message": "Backend is running!"}
-@app.get("/journal-prompt")
-def get_prompt():
-  return {"prompt": coordinator.get_journal_prompt()}
 
-@app.get("/api/mood-checkin")
-async def debug_mood_checkin():
-    print("⚠️ WARNING: GET /mood-checkin hit (not expected!)")
-    return {"error": "Wrong method. This is not GET"}
+
+@app.get("/journal-prompt")
+async def get_prompt():
+  prompts = await asyncio.get_event_loop().run_in_executor(
+    None, coordinator.get_journal_prompts
+  )
+  return {"prompts": prompts}
+
 
 @app.post("/mood-checkin", response_model=MoodResponse)
 async def checkin_mood(mood: MoodInput):
@@ -40,17 +54,21 @@ async def checkin_mood(mood: MoodInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/insights")
 def get_insights():
   return {"insights": coordinator.get_insights()}
+
 
 @app.get("/wellness-tip")
 def get_wellness_tip():
   return {"tip": coordinator.get_wellness_tip()}
 
+
 @app.get("/goal")
 def get_goal():
   return {"goal": coordinator.get_goal()}
+
 
 @app.get("/garden-status")
 def garden_status():
