@@ -1,0 +1,14 @@
+name: mindgarden
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - nodejs=20
+  - npm
+  - python=3.11
+  - pip
+  - pip:
+    - expo-cli
+# Additional system dependencies for React Native development
+# Note: This project primarily uses npm/yarn for React Native dependencies
+# The main dependencies are listed in package.json and installed via npm

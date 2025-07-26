@@ -9,14 +9,21 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Colors } from '../constants/Colors';
 import GardenVisualization from '../components/GardenVisualization';
 import EmotionGarden from '../components/EmotionGarden';
 import QuickActionCard from '../components/QuickActionCard';
+import { RootTabParamList } from '../types/navigation';
 
 const { width } = Dimensions.get('window');
 
+type HomeScreenNavigationProp = BottomTabNavigationProp<RootTabParamList>;
+
 export default function HomeScreen() {
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  
   // Sample emotion data for the week
   const sampleEmotionData = [
     { date: '2024-03-18', mood: 4, activities: ['journaling', 'meditation'] },
@@ -62,21 +69,21 @@ export default function HomeScreen() {
               title="Mood Check"
               subtitle="How are you feeling?"
               color={Colors.accent}
-              onPress={() => {}}
+              onPress={() => navigation.navigate('Mood')}
             />
             <QuickActionCard
               icon="book"
               title="Journal"
               subtitle="Write your thoughts"
               color={Colors.primary}
-              onPress={() => {}}
+              onPress={() => navigation.navigate('Journal')}
             />
             <QuickActionCard
               icon="leaf"
               title="Breathe"
               subtitle="3-minute session"
               color={Colors.primaryLight}
-              onPress={() => {}}
+              onPress={() => navigation.navigate('Mindfulness')}
             />
             <QuickActionCard
               icon="sparkles"
