@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from models.schemas import MoodInput, MoodResponse, JournalEntryInput, JournalEntryResponse, InsightResponse
+from models.schemas import MoodInput, MoodResponse, JournalEntryInput, JournalEntryResponse, InsightResponse, MoodTrendResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from models.classes import CognitiveSupportResponse
@@ -147,3 +147,12 @@ async def cognitive_support():
     return await coordinator.get_cognitive_support(user_id)
   except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))
+  
+
+@app.get("/moods/weekly-trend", response_model=MoodTrendResponse)
+async def get_weekly_mood_trend():
+    try:
+        user_id = "550e8400-e29b-41d4-a716-446655440000"  # Replace with actual auth later
+        return await db.get_weekly_mood_trend(user_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
