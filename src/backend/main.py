@@ -44,6 +44,15 @@ async def get_prompt():
   )
   return {"prompts": prompts}
 
+@app.get("/affirmation-quote")
+async def get_affirmation():
+  quote = await asyncio.get_event_loop().run_in_executor(
+  None, coordinator.get_affirmations
+  )
+
+  return {"quote": quote}
+
+
 
 @app.post("/mood-checkin", response_model=MoodResponse)
 async def checkin_mood(mood: MoodInput):
