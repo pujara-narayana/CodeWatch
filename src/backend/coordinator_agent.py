@@ -36,5 +36,4 @@ class CoordinatorAgent:
     return self.garden.get_growth_message(entries)
   
   def get_affirmations(self):
-    print("Getting into affirmations")
     return self.affirmation.generate_motivational_affirmations(user_info="I am really motivating person who likes to build suff",user_mood="happy",latest_journals=["I am to build a new AI Application", "I was sad not to get the first position in the hackathon"])

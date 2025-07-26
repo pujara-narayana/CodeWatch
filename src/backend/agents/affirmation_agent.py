@@ -14,13 +14,8 @@ class AffirmationAgent:
         Recent Journal Entries: {latest_journals}
         Create an uplifting, personalized affirmation that resonates with their current state. If mood and journals are empty, focus on the user info. Keep it concise and inspiring."""
 
-        print("Generating AI affirmation")
-
         try:
             response = self.model.generate_content(prompt)
-            print("Yay")
-            
-            print(response)
             return response.text.strip()
         except Exception as e:
             print(f"❌ Failed to generate affirmation: {e}")
