@@ -126,6 +126,13 @@ export default function MindfulnessScreen() {
     return () => clearInterval(interval);
   }, [isBreathing, isPaused, selectedPattern]);
 
+  const stopSession = () => {
+    setActiveActivity(null);
+    setSessionTimer(0);
+    setSessionDuration(0);
+    setIsSessionPaused(false);
+  };
+  
   // Session timer effect
   useEffect(() => {
     let sessionInterval: NodeJS.Timeout;

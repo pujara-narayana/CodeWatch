@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Easing } from 'react-native';
-import { Colors } from '../../frontend/constants/Colors';
+import { Colors } from '../constants/Colors';
 import PlantIcon from './PlantIcon';
 
 interface AnimatedPlantProps {
