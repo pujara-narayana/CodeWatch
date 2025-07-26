@@ -109,11 +109,11 @@ export default function MoodScreen() {
                     styles.dayMood,
                     {
                       backgroundColor:
-                        index < 8 ? moodOptions[Math.floor(Math.random() * 5)].color : '#E0E0E0',
+                        index < 4 ? moodOptions[Math.floor(Math.random() * 5)].color : '#E0E0E0',
                     },
                   ]}
                 >
-                  {index < 8 && (
+                  {index < 4 && (
                     <Text style={styles.dayMoodEmoji}>
                       {moodOptions[Math.floor(Math.random() * 5)].emoji}
                     </Text>
