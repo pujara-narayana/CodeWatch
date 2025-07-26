@@ -47,25 +47,88 @@ export default function MoodScreen() {
           <Text style={styles.subtitle}>Track your daily emotional wellness</Text>
         </View>
 
-        {!todayLogged ? (
-          <>
-            <View style={styles.moodSelector}>
-              {moodOptions.map((mood) => (
-                <TouchableOpacity
-                  key={mood.value}
-                  style={[
-                    styles.moodOption,
-                    selectedMood === mood.value && styles.selectedMood,
-                    { borderColor: mood.color },
-                  ]}
-                  onPress={() => handleMoodSelect(mood.value)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-                  <Text style={styles.moodLabel}>{mood.label}</Text>
-                </TouchableOpacity>
-              ))}
+        {/* Date Navigation */}
+        <View style={styles.dateNavigation}>
+          <TouchableOpacity 
+            style={styles.dateNavButton}
+            onPress={() => changeDate(-1)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-back" size={24} color={Colors.primary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.dateDisplay}
+            onPress={goToToday}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.selectedDateText}>
+              {formatDisplayDate(selectedDate)}
+            </Text>
+            <Text style={styles.fullDateText}>
+              {selectedDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.dateNavButton}
+            onPress={() => changeDate(1)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Show current mood if already logged */}
+        {currentMood && (
+          <View style={styles.currentMoodDisplay}>
+            <Text style={styles.currentMoodText}>
+              {formatDisplayDate(selectedDate) === "Today" ? "Today's mood:" : `Mood for ${formatDisplayDate(selectedDate)}:`}
+            </Text>
+            <View style={styles.currentMoodCard}>
+              <Text style={styles.currentMoodEmoji}>
+                {moodOptions.find(m => m.value === currentMood.mood)?.emoji}
+              </Text>
+              <Text style={styles.currentMoodLabel}>{currentMood.label}</Text>
+              <View style={styles.loggedIndicator}>
+                <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                <Text style={styles.loggedText}>Logged</Text>
+              </View>
             </View>
+          </View>
+        )}
+
+        {/* Divider Line */}
+        {currentMood && formatDisplayDate(selectedDate) === "Today" && (
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>Select Different Mood</Text>
+            <View style={styles.dividerLine} />
+          </View>
+        )}
+
+        {/* Mood Selector */}
+        <View style={styles.moodSelector}>
+          {moodOptions.map((mood) => (
+            <TouchableOpacity
+              key={mood.value}
+              style={[
+                styles.moodOption,
+                selectedMood === mood.value && styles.selectedMood,
+                { borderColor: mood.color },
+              ]}
+              onPress={() => handleMoodSelect(mood.value)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+              <Text style={styles.moodLabel}>{mood.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
             {selectedMood && (
               <TouchableOpacity
@@ -152,6 +215,102 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textLight,
     textAlign: 'center',
+  },
+  dateNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  dateNavButton: {
+    padding: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  dateDisplay: {
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 20,
+  },
+  selectedDateText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  fullDateText: {
+    fontSize: 14,
+    color: Colors.textLight,
+    marginTop: 4,
+  },
+  currentMoodDisplay: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  currentMoodText: {
+    fontSize: 16,
+    color: Colors.textLight,
+    marginBottom: 8,
+  },
+  currentMoodCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    justifyContent: 'space-between',
+  },
+  currentMoodEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  currentMoodLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    flex: 1,
+  },
+  loggedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  loggedText: {
+    fontSize: 12,
+    color: Colors.success,
+    marginLeft: 4,
+    fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.textLight,
+    opacity: 0.3,
+  },
+  dividerText: {
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: Colors.textLight,
+    fontWeight: '500',
   },
   moodSelector: {
     paddingHorizontal: 20,
