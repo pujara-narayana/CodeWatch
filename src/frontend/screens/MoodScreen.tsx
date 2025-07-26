@@ -311,6 +311,33 @@ export default function MoodScreen() {
             </View>
           </View>
         )}
+        {/* Divider Line */}
+        {currentMood && formatDisplayDate(selectedDate) === "Today" && (
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>Select Different Mood</Text>
+            <View style={styles.dividerLine} />
+          </View>
+        )}
+
+        {/* Mood Selector */}
+        <View style={styles.moodSelector}>
+          {moodOptions.map((mood) => (
+            <TouchableOpacity
+              key={mood.value}
+              style={[
+                styles.moodOption,
+                selectedMood === mood.value && styles.selectedMood,
+                { borderColor: mood.color },
+              ]}
+              onPress={() => handleMoodSelect(mood.value)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+              <Text style={styles.moodLabel}>{mood.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Mood Selector */}
         <View style={styles.moodSelector}>
@@ -530,6 +557,24 @@ const styles = StyleSheet.create({
     color: Colors.success,
     marginLeft: 4,
     fontWeight: '600',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.textLight,
+    opacity: 0.3,
+  },
+  dividerText: {
+    paddingHorizontal: 16,
+    fontSize: 14,
+    color: Colors.textLight,
+    fontWeight: '500',
   },
   moodSelector: {
     paddingHorizontal: 20,
