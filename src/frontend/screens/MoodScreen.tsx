@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../frontend/constants/Colors';
+import { Colors } from '../constants/Colors';
+import { fetchAgentResponse } from "../utils/api";
+import { postMood } from "../utils/api-calls/postMood";
 
 const { width } = Dimensions.get('window');
 
@@ -23,18 +26,225 @@ const moodOptions = [
 
 export default function MoodScreen() {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
-  const [todayLogged, setTodayLogged] = useState(false);
+  const [loggedMoods, setLoggedMoods] = useState<{[key: string]: {mood: number, label: string}}>({});
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Sample data for demonstration - replace with actual data loading
+  useEffect(() => {
+    // Simulate loading previous mood data
+    const loadSampleData = () => {
+      const today = new Date();
+      const sampleMoods: {[key: string]: {mood: number, label: string}} = {};
+      
+      // Add sample data for the past 7 days
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const dateString = formatDate(date);
+        
+        // Random mood for demonstration (replace with actual API call)
+        const randomMoodIndex = Math.floor(Math.random() * moodOptions.length);
+        const randomMood = moodOptions[randomMoodIndex];
+        
+        sampleMoods[dateString] = {
+          mood: randomMood.value,
+          label: randomMood.label
+        };
+      }
+      
+      setLoggedMoods(sampleMoods);
+    };
+
+    loadSampleData();
+  }, []);
+
+  // Format date to YYYY-MM-DD string
+  const formatDate = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const date = new Date();
+  const day = date.toLocaleString('en-us',{ weekday: 'long' });
+
+  console.log(day);
+
+  // Get mood for a specific date
+  const getMoodForDate = (date: Date) => {
+    const dateString = formatDate(date);
+    return loggedMoods[dateString];
+  };
+
+  // Check if selected date has a logged mood
+  const isDateLogged = () => {
+    return !!getMoodForDate(selectedDate);
+  };
+
+  // Change selected date
+  const changeDate = (days: number) => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(selectedDate.getDate() + days);
+    setSelectedDate(newDate);
+    
+    // Reset selected mood when changing dates
+    const existingMood = getMoodForDate(newDate);
+    setSelectedMood(existingMood ? existingMood.mood : null);
+  };
+
+  // Set selected date to today
+  const goToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+    const existingMood = getMoodForDate(today);
+    setSelectedMood(existingMood ? existingMood.mood : null);
+  };
+
+  // Handle mood selection
   const handleMoodSelect = (value: number) => {
     setSelectedMood(value);
   };
 
-  const handleLogMood = () => {
-    if (selectedMood) {
-      setTodayLogged(true);
-      // Here you would typically save to backend/storage
+  // Handle logging mood
+  const handleLogMood = async () => {
+    if (!selectedMood) return;
+
+    // Only allow logging for current day
+    const today = new Date();
+    const isToday = formatDate(selectedDate) === formatDate(today);
+    
+    if (!isToday) {
+      Alert.alert(
+        "Cannot Log Mood",
+        "You can only log moods for today.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    const dateString = formatDate(selectedDate);
+
+    try {
+      const moodLabel = moodOptions.find((m) => m.value === selectedMood)?.label || 'Unknown';
+      
+      // Call API
+      const response = await postMood(moodLabel);
+      console.log("Mood agent response:", response);
+      
+      // Update local state
+      setLoggedMoods(prev => ({
+        ...prev,
+        [dateString]: { mood: selectedMood, label: moodLabel }
+      }));
+
+      Alert.alert(
+        "Mood Logged!",
+        `Your ${moodLabel.toLowerCase()} mood has been logged for today.`,
+        [{ text: "OK" }]
+      );
+
+    } catch (err) {
+      console.error("Failed to log mood:", err);
+      Alert.alert(
+        "Error",
+        "Failed to log your mood. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Format date for display
+  const formatDisplayDate = (date: Date): string => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    
+    const dateString = formatDate(date);
+    const todayString = formatDate(today);
+    const yesterdayString = formatDate(yesterday);
+
+    if (dateString === todayString) return "Today";
+    if (dateString === yesterdayString) return "Yesterday";
+    
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  // Get week days for weekly overview
+  const getWeekDays = (): Date[] => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+    
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      weekDays.push(day);
+    }
+    return weekDays;
+  };
+
+  // Get insights based on logged moods
+  const getMoodInsights = () => {
+    const weekDays = getWeekDays();
+    const weekMoods = weekDays
+      .map(date => getMoodForDate(date))
+      .filter(mood => mood !== undefined)
+      .map(mood => mood!.mood);
+
+    if (weekMoods.length === 0) {
+      return {
+        icon: "information-circle",
+        color: Colors.primary,
+        title: "Start Tracking",
+        text: "Log your daily moods to see personalized insights and trends."
+      };
+    }
+
+    const average = weekMoods.reduce((sum, mood) => sum + mood, 0) / weekMoods.length;
+    const recent = weekMoods.slice(-3);
+    const recentAverage = recent.reduce((sum, mood) => sum + mood, 0) / recent.length;
+
+    if (recentAverage > average) {
+      return {
+        icon: "trending-up",
+        color: Colors.success,
+        title: "Positive Trend",
+        text: "Your mood has been improving recently. Keep up the great self-care!"
+      };
+    } else if (recentAverage < average - 0.5) {
+      return {
+        icon: "trending-down",
+        color: "#FF9800",
+        title: "Need Support?",
+        text: "Your mood has been lower lately. Consider reaching out to friends or practicing self-care."
+      };
+    } else {
+      return {
+        icon: "analytics",
+        color: Colors.primary,
+        title: "Steady Progress",
+        text: "Your mood has been relatively stable. Consistency in tracking helps build awareness."
+      };
+    }
+  };
+
+  useEffect(() => {
+    // Reset selected mood when date changes
+    const existingMood = getMoodForDate(selectedDate);
+    setSelectedMood(existingMood ? existingMood.mood : null);
+  }, [selectedDate]);
+
+  const weekDays = getWeekDays();
+  const insights = getMoodInsights();
+  const currentMood = getMoodForDate(selectedDate);
 
   return (
     <LinearGradient
@@ -101,7 +311,6 @@ export default function MoodScreen() {
             </View>
           </View>
         )}
-
         {/* Divider Line */}
         {currentMood && formatDisplayDate(selectedDate) === "Today" && (
           <View style={styles.dividerContainer}>
@@ -130,63 +339,118 @@ export default function MoodScreen() {
           ))}
         </View>
 
-            {selectedMood && (
-              <TouchableOpacity
-                style={styles.logButton}
-                onPress={handleLogMood}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.logButtonText}>Log Today's Mood</Text>
-                <Ionicons name="checkmark-circle" size={24} color={Colors.surface} />
-              </TouchableOpacity>
-            )}
-          </>
-        ) : (
-          <View style={styles.successMessage}>
-            <Ionicons name="checkmark-circle" size={48} color={Colors.success} />
-            <Text style={styles.successTitle}>Mood Logged!</Text>
-            <Text style={styles.successSubtitle}>
-              Great job checking in with yourself today.
+        {/* Mood Selector */}
+        <View style={styles.moodSelector}>
+          {moodOptions.map((mood) => (
+            <TouchableOpacity
+              key={mood.value}
+              style={[
+                styles.moodOption,
+                selectedMood === mood.value && styles.selectedMood,
+                { borderColor: mood.color },
+              ]}
+              onPress={() => handleMoodSelect(mood.value)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+              <Text style={styles.moodLabel}>{mood.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Show message for past days */}
+        {formatDate(selectedDate) !== formatDate(new Date()) && (
+          <View style={styles.pastDateMessage}>
+            <Ionicons name="information-circle" size={20} color={Colors.textLight} />
+            <Text style={styles.pastDateText}>
+              You can only log moods for today. Navigate to today to log your current mood.
             </Text>
           </View>
         )}
+        {selectedMood && formatDate(selectedDate) === formatDate(new Date()) && (
+          <TouchableOpacity
+            style={[styles.logButton, isLoading && styles.logButtonDisabled]}
+            onPress={handleLogMood}
+            activeOpacity={0.8}
+            disabled={isLoading}
+          >
+            <Text style={styles.logButtonText}>
+              {isLoading ? 'Logging...' : 'Log Today\'s Mood'}
+            </Text>
+            <Ionicons 
+              name="checkmark-circle" 
+              size={24} 
+              color={Colors.surface} 
+            />
+          </TouchableOpacity>
+        )}
 
+        {/* Weekly Overview */}
         <View style={styles.weeklyOverview}>
           <Text style={styles.sectionTitle}>This Week</Text>
           <View style={styles.weekGrid}>
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
-              <View key={day} style={styles.dayCard}>
-                <Text style={styles.dayLabel}>{day}</Text>
-                <View
-                  style={[
-                    styles.dayMood,
-                    {
-                      backgroundColor:
-                        index < 4 ? moodOptions[Math.floor(Math.random() * 5)].color : '#E0E0E0',
-                    },
-                  ]}
+            {weekDays.map((date, index) => {
+              const dayMood = getMoodForDate(date);
+              const isToday = formatDate(date) === formatDate(new Date());
+              const isSelected = formatDate(date) === formatDate(selectedDate);
+              
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.dayCard, isSelected && styles.selectedDayCard]}
+                  onPress={() => setSelectedDate(new Date(date))}
+                  activeOpacity={0.7}
                 >
-                  {index < 4 && (
-                    <Text style={styles.dayMoodEmoji}>
-                      {moodOptions[Math.floor(Math.random() * 5)].emoji}
-                    </Text>
+                  <Text style={[
+                    styles.dayLabel,
+                    isToday && styles.todayLabel,
+                    isSelected && styles.selectedDayLabel
+                  ]}>
+                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </Text>
+                  <View
+                    style={[
+                      styles.dayMood,
+                      {
+                        backgroundColor: dayMood 
+                          ? moodOptions.find(m => m.value === dayMood.mood)?.color || '#E0E0E0'
+                          : '#E0E0E0',
+                      },
+                      isSelected && styles.selectedDayMood
+                    ]}
+                  >
+                    {dayMood && (
+                      <Text style={styles.dayMoodEmoji}>
+                        {moodOptions.find(m => m.value === dayMood.mood)?.emoji}
+                      </Text>
+                    )}
+                    {!dayMood && (
+                      <Ionicons name="add" size={16} color="#999" />
+                    )}
+                  </View>
+                  <Text style={styles.dayNumber}>
+                    {date.getDate()}
+                  </Text>
+                  {dayMood && (
+                    <View style={styles.dayMoodLabel}>
+                      <Text style={styles.dayMoodLabelText}>{dayMood.label}</Text>
+                    </View>
                   )}
-                </View>
-              </View>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
+        {/* Insights */}
         <View style={styles.insights}>
           <Text style={styles.sectionTitle}>Mood Insights</Text>
           <View style={styles.insightCard}>
             <View style={styles.insightHeader}>
-              <Ionicons name="trending-up" size={24} color={Colors.success} />
-              <Text style={styles.insightTitle}>Positive Trend</Text>
+              <Ionicons name={insights.icon as any} size={24} color={insights.color} />
+              <Text style={styles.insightTitle}>{insights.title}</Text>
             </View>
-            <Text style={styles.insightText}>
-              Your mood has been improving over the past week. Keep up the great self-care!
-            </Text>
+            <Text style={styles.insightText}>{insights.text}</Text>
           </View>
         </View>
       </ScrollView>
@@ -201,7 +465,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 30,
+    paddingBottom: 20,
     alignItems: 'center',
   },
   title: {
@@ -354,28 +618,30 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 30,
   },
+  logButtonDisabled: {
+    opacity: 0.6,
+  },
   logButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.surface,
     marginRight: 8,
   },
-  successMessage: {
+  pastDateMessage: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
+    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 30,
   },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.success,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  successSubtitle: {
-    fontSize: 16,
+  pastDateText: {
+    fontSize: 14,
     color: Colors.textLight,
-    textAlign: 'center',
+    marginLeft: 8,
+    flex: 1,
+    lineHeight: 20,
   },
   weeklyOverview: {
     paddingHorizontal: 20,
@@ -394,12 +660,25 @@ const styles = StyleSheet.create({
   dayCard: {
     alignItems: 'center',
     flex: 1,
+    padding: 8,
+    borderRadius: 12,
+  },
+  selectedDayCard: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   dayLabel: {
     fontSize: 12,
     color: Colors.textLight,
     marginBottom: 8,
     fontWeight: '500',
+  },
+  todayLabel: {
+    color: Colors.primary,
+    fontWeight: '700',
+  },
+  selectedDayLabel: {
+    color: Colors.text,
+    fontWeight: '700',
   },
   dayMood: {
     width: 40,
@@ -408,8 +687,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  selectedDayMood: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
   dayMoodEmoji: {
     fontSize: 18,
+  },
+  dayNumber: {
+    fontSize: 10,
+    color: Colors.textLight,
+    marginTop: 4,
+  },
+  dayMoodLabel: {
+    marginTop: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 6,
+    minHeight: 20,
+    justifyContent: 'center',
+  },
+  dayMoodLabelText: {
+    fontSize: 8,
+    color: Colors.text,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   insights: {
     paddingHorizontal: 20,

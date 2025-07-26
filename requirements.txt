@@ -2,3 +2,6 @@ fastapi~=0.116.1
 pydantic
 protobuf~=5.29.5
 python-dotenv~=1.1.1
+google-generativeai
+uvicorn
+supabase
