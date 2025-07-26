@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { fetchAgentResponse } from "../utils/api";
 import { postMood } from "../utils/api-calls/postMood";
 
@@ -25,6 +26,7 @@ const moodOptions = [
 ];
 
 export default function MoodScreen() {
+  const { colors } = useTheme();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [loggedMoods, setLoggedMoods] = useState<{[key: string]: {mood: number, label: string}}>({});
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());

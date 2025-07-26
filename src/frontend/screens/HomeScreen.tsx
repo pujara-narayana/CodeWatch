@@ -11,18 +11,25 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { CompositeNavigationProp } from '@react-navigation/native';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../contexts/ThemeContext';
 import GardenVisualization from '../components/GardenVisualization';
 import EmotionGarden from '../components/EmotionGarden';
 import QuickActionCard from '../components/QuickActionCard';
-import { RootTabParamList } from '../types/navigation';
+import { RootTabParamList, RootStackParamList } from '../types/navigation';
 
 const { width } = Dimensions.get('window');
 
-type HomeScreenNavigationProp = BottomTabNavigationProp<RootTabParamList>;
+type HomeScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<RootTabParamList>,
+  StackNavigationProp<RootStackParamList>
+>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { colors, isDarkMode, toggleTheme } = useTheme();
   
   // Sample emotion data for the week
   const sampleEmotionData = [
@@ -35,24 +42,32 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={[Colors.secondary, Colors.background]}
+      colors={[colors.secondary, colors.background]}
       style={styles.container}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good Morning</Text>
-            <Text style={styles.username}>Sarah</Text>
+            <Text style={[styles.greeting, { color: colors.textLight }]}>Good Morning</Text>
+            <Text style={[styles.username, { color: colors.text }]}>Sarah</Text>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color={Colors.text} />
+          <TouchableOpacity 
+            style={[styles.sleepModeButton, { backgroundColor: colors.surface }]}
+            onPress={toggleTheme}
+            activeOpacity={0.8}
+          >
+            <Ionicons 
+              name={isDarkMode ? "sunny" : "moon"} 
+              size={24} 
+              color={isDarkMode ? colors.warning : colors.primary} 
+            />
           </TouchableOpacity>
         </View>
 
         <View style={styles.gardenContainer}>
-          <Text style={styles.sectionTitle}>Your Mind Garden</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Mind Garden</Text>
           <GardenVisualization />
-          <Text style={styles.gardenSubtitle}>
+          <Text style={[styles.gardenSubtitle, { color: colors.textLight }]}>
             Your garden is blooming! Keep nurturing your mental wellness.
           </Text>
         </View>
@@ -62,44 +77,44 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.quickActions}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
           <View style={styles.actionGrid}>
             <QuickActionCard
               icon="happy"
               title="Mood Check"
               subtitle="How are you feeling?"
-              color={Colors.accent}
+              color={colors.accent}
               onPress={() => navigation.navigate('Mood')}
             />
             <QuickActionCard
               icon="book"
               title="Journal"
               subtitle="Write your thoughts"
-              color={Colors.primary}
+              color={colors.primary}
               onPress={() => navigation.navigate('Journal')}
             />
             <QuickActionCard
               icon="leaf"
               title="Breathe"
               subtitle="3-minute session"
-              color={Colors.primaryLight}
+              color={colors.primaryLight}
               onPress={() => navigation.navigate('Mindfulness')}
             />
             <QuickActionCard
               icon="sparkles"
               title="Affirmation"
               subtitle="Daily inspiration"
-              color={Colors.warning}
-              onPress={() => {}}
+              color={colors.warning}
+              onPress={() => navigation.navigate('Affirmations')}
             />
           </View>
         </View>
 
         <View style={styles.todayInsight}>
-          <Text style={styles.sectionTitle}>Today's Insight</Text>
-          <View style={styles.insightCard}>
-            <Ionicons name="bulb" size={24} color={Colors.primary} />
-            <Text style={styles.insightText}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Insight</Text>
+          <View style={[styles.insightCard, { backgroundColor: colors.surface }]}>
+            <Ionicons name="bulb" size={24} color={colors.primary} />
+            <Text style={[styles.insightText, { color: colors.text }]}>
               You've been consistently journaling for 7 days! This shows great commitment to self-reflection.
             </Text>
           </View>
@@ -132,11 +147,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 4,
   },
-  notificationButton: {
+  sleepModeButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: Colors.shadow,
