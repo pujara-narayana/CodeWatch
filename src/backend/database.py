@@ -2,7 +2,8 @@ import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from typing import List, Optional
-from models.schemas import MoodInput, MoodResponse, JournalEntryInput, JournalEntryResponse, InsightResponse
+from models.schemas import MoodInput, MoodResponse, JournalEntryInput, JournalEntryResponse, InsightResponse, MoodTrendPoint, MoodTrendResponse
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -71,6 +72,40 @@ class Database:
         response = query.order("created_at", desc=True).limit(limit).execute()
         
         return [InsightResponse(**insight) for insight in response.data]
+    
+    async def get_weekly_mood_trend(self, user_id: str) -> MoodTrendResponse:
+        # Get date 7 days ago
+        seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        
+        # Query moods from last 7 days
+        response = self.supabase.table("moods").select("mood_score, created_at").eq("user_id", user_id).gte("created_at", seven_days_ago).execute()
+        
+        # Group by date and calculate averages
+        daily_data = {}
+        for mood in response.data:
+            # Extract date part from timestamp
+            mood_date = datetime.fromisoformat(mood['created_at'].replace('Z', '+00:00')).date()
+            
+            if mood_date not in daily_data:
+                daily_data[mood_date] = {'scores': [], 'count': 0}
+            
+            daily_data[mood_date]['scores'].append(mood['mood_score'])
+            daily_data[mood_date]['count'] += 1
+        
+        # Create trend points
+        trend_points = []
+        for date_key, data in daily_data.items():
+            average_score = sum(data['scores']) / len(data['scores'])
+            trend_points.append(MoodTrendPoint(
+                date=date_key,
+                average_score=round(average_score, 2),
+                count=data['count']
+            ))
+        
+        # Sort by date
+        trend_points.sort(key=lambda x: x.date)
+        
+        return MoodTrendResponse(trend=trend_points)
 
 # Global database instance
 db = Database()

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from models.schemas import MoodInput, MoodResponse, JournalEntryInput, JournalEntryResponse, InsightResponse
+from models.schemas import MoodInput, MoodResponse, JournalEntryInput, JournalEntryResponse, InsightResponse, MoodTrendResponse
 from fastapi.middleware.cors import CORSMiddleware
 from utils import get_gemini_model
 from contextlib import asynccontextmanager
@@ -118,5 +118,13 @@ async def get_insights_from_db(insight_type: str = None, limit: int = 10):
     try:
         user_id = "550e8400-e29b-41d4-a716-446655440000"  # Replace with actual auth later
         return await db.get_user_insights(user_id, insight_type, limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/moods/weekly-trend", response_model=MoodTrendResponse)
+async def get_weekly_mood_trend():
+    try:
+        user_id = "550e8400-e29b-41d4-a716-446655440000"  # Replace with actual auth later
+        return await db.get_weekly_mood_trend(user_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
