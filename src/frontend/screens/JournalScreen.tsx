@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../frontend/constants/Colors';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ const journalPrompts = [
 ];
 
 export default function JournalScreen() {
+  const { colors } = useTheme();
   const [currentEntry, setCurrentEntry] = useState('');
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
   const [showPrompts, setShowPrompts] = useState(false);
@@ -43,13 +45,13 @@ export default function JournalScreen() {
 
   return (
     <LinearGradient
-      colors={[Colors.secondary, Colors.background]}
+      colors={[colors.secondary, colors.background]}
       style={styles.container}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Journal</Text>
-          <Text style={styles.subtitle}>Express your thoughts and feelings</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Journal</Text>
+          <Text style={[styles.subtitle, { color: colors.textLight }]}>Express your thoughts and feelings</Text>
         </View>
 
         <View style={styles.promptSection}>
