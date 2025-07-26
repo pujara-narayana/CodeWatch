@@ -1,8 +1,6 @@
-# 🧠 MindGarden - Technical Design Explanation
+# 🌱 MindGarden - AI-Powered Mental Wellness Companion
 
-## Design Philosophy & Technical Choices
-
-This document explains the technical decisions and design choices made in building MindGarden, an AI-powered mental wellness companion that combines React Native frontend with intelligent backend agents.
+A beautifully designed React Native app that serves as your adaptive AI-powered mental wellness companion, featuring intelligent interaction, emotional tracking, guided journaling, mindfulness activities, and a gamified emotion garden.
 
 ## ✨ Features
 
@@ -55,42 +53,28 @@ This document explains the technical decisions and design choices made in buildi
 ### **Frontend (React Native)**
 ```
 src/
-├── backend/
-│   ├── main.py                 # FastAPI entry point
-│   ├── agents/                 # Modular AI agents
-│   │   ├── __init__.py
-│   │   ├── garden_agent.py
-│   │   ├── goal_agent.py
-│   │   ├── insight_agent.py
-│   │   ├── mood_agent.py
-│   │   └── wellness_agent.py
-│   ├── coordinator_agent.py    # Coordinates agents for end-to-end experience
-│   ├── models/
-│   │   └── schemas.py          # Pydantic models and request/response schemas
-│   └── utils.py                # Utility helpers (e.g. Gemini API integration)
-└── frontend/
-    ├── components/          # Reusable UI components
-    │   ├── AnimatedButton.tsx
-    │   ├── AnimatedPlant.tsx
-    │   ├── EmotionGarden.tsx
-    │   ├── GardenVisualization.tsx
-    │   ├── PlantIcon.tsx
-    │   └── QuickActionCard.tsx
-    ├── constants/           # App constants and configurations
-    │   ├── Animations.ts
-    │   └── Colors.ts
-    ├── navigation/          # Navigation setup
-    │   └── MainNavigator.tsx
-    ├── screens/             # Main app screens
-    │   ├── HomeScreen.tsx
-    │   ├── JournalScreen.tsx
-    │   ├── JournalEntryScreen.tsx
-    │   ├── MindfulnessScreen.tsx
-    │   ├── MoodScreen.tsx
-    │   ├── MoodCheckInScreen.tsx
-    │   └── ProfileScreen.tsx
-    └── types/               # TypeScript type definitions
-        └── navigation.ts
+├── components/          # Reusable UI components
+│   ├── AnimatedButton.tsx
+│   ├── AnimatedPlant.tsx
+│   ├── EmotionGarden.tsx
+│   ├── GardenVisualization.tsx
+│   ├── PlantIcon.tsx
+│   └── QuickActionCard.tsx
+├── constants/           # App constants and configurations
+│   ├── Animations.ts
+│   └── Colors.ts
+├── navigation/          # Navigation setup
+│   └── MainNavigator.tsx
+├── screens/            # Main app screens
+│   ├── HomeScreen.tsx
+│   ├── JournalScreen.tsx
+│   ├── JournalEntryScreen.tsx
+│   ├── MindfulnessScreen.tsx
+│   ├── MoodScreen.tsx
+│   ├── MoodCheckInScreen.tsx
+│   └── ProfileScreen.tsx
+└── types/              # TypeScript type definitions
+    └── navigation.ts
 ```
 
 ### **Key Technologies**
@@ -111,15 +95,14 @@ The frontend is designed to easily connect with the multi-agent backend system:
 
 ## 🚀 Getting Started
 
-### Frontend
-#### **Prerequisites**
+### **Prerequisites**
 - Node.js (v16 or higher)
 - npm or yarn
 - Expo CLI (`npm install -g expo-cli`)
 - iOS Simulator (for iOS development)
 - Android Studio (for Android development)
 
-#### **Installation**
+### **Installation**
 ```bash
 # Clone the repository  
 git clone <repository-url>
@@ -136,32 +119,6 @@ npm run ios
 
 # Run on Android
 npm run android
-```
-### Backend
-#### Prerequisites
-- Python 3.10+
-- FastAPI
-- Uvicorn
-- python-dotenv
-- Gemini API Key from Google AI Studio
-
-#### Installation
-```bash
-cd src/backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the server
-uvicorn main:app --reload
-```
-Create a .env file in root:
-```ini
-GEMINI_API_KEY=your_google_gemini_api_key_here
 ```
 
 This MindGarden frontend provides a solid foundation for a mental wellness app that can later be connected to your AI-powered backend system. The design is both beautiful and functional, with smooth animations and an intuitive user experience that promotes mental well-being.
