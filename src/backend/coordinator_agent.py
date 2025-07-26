@@ -4,6 +4,7 @@ from agents.insight_agent import InsightAgent
 from agents.wellness_agent import WellnessCoachAgent
 from agents.goal_agent import GoalAgent
 from agents.garden_agent import GardenVisualizerAgent
+from agents.affirmation_agent import AffirmationAgent
 
 class CoordinatorAgent:
   def __init__(self, model):
@@ -13,6 +14,7 @@ class CoordinatorAgent:
     self.wellness = WellnessCoachAgent()
     self.goal = GoalAgent()
     self.garden = GardenVisualizerAgent()
+    self.affirmation = AffirmationAgent(model)
 
   def get_journal_prompts(self):
     return self.journal.generate_journal_prompts()
@@ -32,3 +34,7 @@ class CoordinatorAgent:
   def get_garden_status(self):
     entries = len(self.mood.get_moods())
     return self.garden.get_growth_message(entries)
+  
+  def get_affirmations(self):
+    print("Getting into affirmations")
+    return self.affirmation.generate_motivational_affirmations(user_info="I am really motivating person who likes to build suff",user_mood="happy",latest_journals=["I am to build a new AI Application", "I was sad not to get the first position in the hackathon"])

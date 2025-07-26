@@ -5,6 +5,8 @@ from utils import get_gemini_model
 from contextlib import asynccontextmanager
 from coordinator_agent import CoordinatorAgent
 import asyncio
+from database import db
+from typing import List
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,9 +16,6 @@ async def lifespan(app: FastAPI):
   print("✅ Gemini model initialized at startup")
   yield  # ⬅ app runs after this
   print("🛑 App shutting down")
-from database import db
-from typing import List
-
 
 app = FastAPI(lifespan=lifespan)
 
@@ -40,6 +39,15 @@ async def get_prompt():
     None, coordinator.get_journal_prompts
   )
   return {"prompts": prompts}
+
+@app.get("/affirmation-quote")
+async def get_affirmation():
+  quote = await asyncio.get_event_loop().run_in_executor(
+  None, coordinator.get_affirmations
+  )
+  
+  return {"quote": quote}
+
 
 
 @app.post("/mood-checkin", response_model=MoodResponse)
