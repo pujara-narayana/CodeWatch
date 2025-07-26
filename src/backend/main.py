@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from utils import get_gemini_model
 from contextlib import asynccontextmanager
 from coordinator_agent import CoordinatorAgent
-
+import asyncio
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,9 +33,10 @@ def root():
 
 
 @app.get("/journal-prompt")
-def get_prompt():
-  print("Hit the journal prompt api")
-  prompts = coordinator.get_journal_prompts()
+async def get_prompt():
+  prompts = await asyncio.get_event_loop().run_in_executor(
+    None, coordinator.get_journal_prompts
+  )
   return {"prompts": prompts}
 
 
