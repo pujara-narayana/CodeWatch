@@ -11,8 +11,10 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../contexts/ThemeContext';
 import { fetchAgentResponse } from "../utils/api";
 import { postMood } from "../utils/api-calls/postMood";
+import MoodTrendChart from '../components/MoodTrendChart';
 
 const { width } = Dimensions.get('window');
 
@@ -25,10 +27,12 @@ const moodOptions = [
 ];
 
 export default function MoodScreen() {
+  const { colors } = useTheme();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [loggedMoods, setLoggedMoods] = useState<{[key: string]: {mood: number, label: string}}>({});
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [chartRefreshTrigger, setChartRefreshTrigger] = useState(0);
 
   // Sample data for demonstration - replace with actual data loading
   useEffect(() => {
@@ -136,6 +140,9 @@ export default function MoodScreen() {
         ...prev,
         [dateString]: { mood: selectedMood, label: moodLabel }
       }));
+
+      // Trigger chart refresh
+      setChartRefreshTrigger(prev => prev + 1);
 
       Alert.alert(
         "Mood Logged!",
@@ -426,6 +433,16 @@ export default function MoodScreen() {
         {/* Insights */}
         <View style={styles.insights}>
           <Text style={styles.sectionTitle}>Mood Insights</Text>
+          
+          {/* Weekly Mood Trend Card */}
+          <View style={[styles.insightCard, styles.trendCard]}>
+            <View style={styles.insightHeader}>
+              <Ionicons name="trending-up" size={24} color="#4CAF50" />
+              <Text style={styles.insightTitle}>Weekly Mood Trend</Text>
+            </View>
+            <MoodTrendChart refreshTrigger={chartRefreshTrigger} />
+          </View>
+          
           <View style={styles.insightCard}>
             <View style={styles.insightHeader}>
               <Ionicons name={insights.icon as any} size={24} color={insights.color} />
@@ -724,5 +741,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textLight,
     lineHeight: 22,
+  },
+  trendCard: {
+    marginBottom: 16,
   },
 });

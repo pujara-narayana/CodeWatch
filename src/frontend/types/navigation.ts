@@ -10,6 +10,7 @@ export type RootStackParamList = {
   Main: undefined;
   MoodCheckIn: undefined;
   JournalEntry: undefined;
+  Affirmations: undefined;
   MindfulnessSession: undefined;
   Settings: undefined;
 };

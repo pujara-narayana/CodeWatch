@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
+from typing import Optional, List
+from datetime import datetime, date
 import uuid
 
 class MoodInput(BaseModel):
@@ -42,3 +42,11 @@ class UserResponse(BaseModel):
     email: str
     username: Optional[str]
     created_at: datetime
+
+class MoodTrendPoint(BaseModel):
+    date: date
+    average_score: float
+    count: int
+
+class MoodTrendResponse(BaseModel):
+    trend: List[MoodTrendPoint]

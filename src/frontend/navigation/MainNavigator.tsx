@@ -12,6 +12,7 @@ import MindfulnessScreen from '../screens/MindfulnessScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import MoodCheckInScreen from '../screens/MoodCheckInScreen';
 import JournalEntryScreen from '../screens/JournalEntryScreen';
+import AffirmationsScreen from '../screens/AffirmationsScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createStackNavigator<RootStackParamList>();
@@ -76,6 +77,7 @@ export default function MainNavigator() {
       <Stack.Screen name="Main" component={TabNavigator} />
       <Stack.Screen name="MoodCheckIn" component={MoodCheckInScreen} />
       <Stack.Screen name="JournalEntry" component={JournalEntryScreen} />
+      <Stack.Screen name="Affirmations" component={AffirmationsScreen} />
     </Stack.Navigator>
   );
 }
